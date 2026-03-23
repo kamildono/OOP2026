@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'test.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.2
+## Created by: Qt User Interface Compiler version 6.11.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -53,7 +53,7 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.tab_2, "")
         self.horizontalSlider = QSlider(self.centralwidget)
         self.horizontalSlider.setObjectName(u"horizontalSlider")
-        self.horizontalSlider.setGeometry(QRect(490, 120, 160, 16))
+        self.horizontalSlider.setGeometry(QRect(500, 120, 160, 16))
         self.horizontalSlider.setOrientation(Qt.Orientation.Horizontal)
         self.checkBox = QCheckBox(self.centralwidget)
         self.checkBox.setObjectName(u"checkBox")
@@ -62,10 +62,13 @@ class Ui_MainWindow(object):
         self.label2.setObjectName(u"label2")
         self.label2.setGeometry(QRect(240, 400, 261, 51))
         self.label2.setMouseTracking(False)
+        self.label3 = QLabel(self.centralwidget)
+        self.label3.setObjectName(u"label3")
+        self.label3.setGeometry(QRect(248, 490, 481, 20))
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 800, 33))
+        self.menubar.setGeometry(QRect(0, 0, 800, 22))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -90,5 +93,6 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("MainWindow", u"Tab 2", None))
         self.checkBox.setText(QCoreApplication.translate("MainWindow", u"CheckBox", None))
         self.label2.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
+        self.label3.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
     # retranslateUi
 

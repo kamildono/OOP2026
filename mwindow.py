@@ -1,13 +1,15 @@
 import sys
+from tkinter import Label
 
 from PySide6 import QtGui
 from PySide6.QtCore import QTime, QRect
 from PySide6.QtGui import QPainter
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtWidgets import QApplication, QMainWindow, QLabel
 from ui_window import Ui_MainWindow
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -17,7 +19,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #self.horizontalSlider.sliderMoved.connect(self.tabWidget.setCurrentIndex)
         self.slider = self.horizontalSlider
         self.tab_wid = self.tabWidget
-
+        
         self.slider.setRange(0, self.tab_wid.count() - 1)
         self.slider.valueChanged.connect(self.tab_wid.setCurrentIndex)
         self.tab_wid.currentChanged.connect(self.slider.setValue)
@@ -35,18 +37,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.radio.setText("toggle me for today!")
         self.radio.clicked.connect(self.calendar_update_radio)
 
-
+        self.label3.show()
+        #self.label3.
         #self.paint = QtGui.QPaintEvent(paintRect)
 
+        self.paint_reason = "boot"
+
     def paintEvent(self, event):
-        canvas_painter = QPainter(self)
-        canvas_painter.drawRect(QRect())
+
+        print('event!!!')
+        self.label3.setText(f'paint event happend {self.paint_reason}, also because itself')
 
     def calendar_update_radio(self):
-
+        self.paint_reason = "Today"
         self.calendarWidget.showToday()
 
     def toggle_name(self):
+        self.paint_reason = "czechBox"
         if self.checkBox.isChecked():
             self.setWindowTitle("Новое окно")
             self.checkBox.setText("Урааа")
@@ -61,6 +68,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.timeEdit.setTime(new_time)
 
     def mouseMoveEvent(self, e):
+        self.paint_reason = "mouse move"
         self.label2.setText("АА МЫШЬ ДЕРГАЕТСЯ")
         #self.tab_wid.hide()
         self.tab_wid.resize(250, 150)
@@ -68,9 +76,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
     def mouseDoubleClickEvent(self, event, /):
+        self.paint_reason = "mouse atack"
         self.label2.setText("ААААА МЫШЬ ТЫЧЕТ")
         #self.grabMouse()
     def mouseReleaseEvent(self, e):
+        self.paint_reason = "mouse released"
         self.label2.setText("Z...z.?")
         self.tab_wid.resize(381, 271)
         self.slider.show()
