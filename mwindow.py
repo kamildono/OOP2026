@@ -4,16 +4,18 @@ from random import choice
 from tkinter import Label
 
 from PySide6 import QtGui
-from PySide6.QtCore import QTime, QRect
-from PySide6.QtGui import QPainter
+from PySide6.QtCore import QTime, QRect, QSize, QTimer
+from PySide6.QtGui import QPainter, QPixmap
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton
 from ui_window import Ui_MainWindow
 
-randomness = [i for i in range(-100, 100) if (i <-10 or i > 10)]
+randomness = [i for i in range(-100, 100) if (i < -10 or i > 10)]
 print(randomness)
+
 
 class MainWindow(QMainWindow, Ui_MainWindow):
 
+    # noinspection PyStatementEffect
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -23,7 +25,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #self.horizontalSlider.sliderMoved.connect(self.tabWidget.setCurrentIndex)
         self.slider = self.horizontalSlider
         self.tab_wid = self.tabWidget
-        
+        self.tab_wid.setTabText(self.tab_wid.indexOf(self.tab_2), 'калденарь')
+        self.tab_wid.setTabText(self.tab_wid.indexOf(self.tab_3), ' ')
+        self.tab_3_icon = QPixmap("images\Screenshot_28.png")
+        self.tab_wid.setTabIcon(self.tab_wid.indexOf(self.tab_3), self.tab_3_icon)
+        self.tab_wid.setIconSize(QSize(90, 90))
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.func)
+        self.timer.start(1000)
+
+        print(self.timer.remainingTime())
+
         self.slider.setRange(0, self.tab_wid.count() - 1)
         self.slider.valueChanged.connect(self.tab_wid.setCurrentIndex)
         self.tab_wid.currentChanged.connect(self.slider.setValue)
@@ -31,6 +44,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.dial.setRange(0, 60)
         self.dial.valueChanged.connect(self.update_time_from_dial)
         self.dial.valueChanged.connect(self.label1.setNum)
+        self.progressBar.setRange(0, 60)
 
         self.label2.setText("Z..z...")
 
@@ -42,14 +56,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.radio.clicked.connect(self.calendar_update_radio)
 
         self.label3.show()
-        #self.label3.
-        #self.paint = QtGui.QPaintEvent(paintRect)
 
         self.paint_reason = "boot"
 
-
         self.pushButton.clicked.connect(self.new_button)
 
+        self.lineEdit.returnPressed.connect(self.transfer_line_to_text)
+
+        self.last_dial_value = 0
+
+    def func(self):
+        print("decrease_time called")
+        print(self.timer.remainingTime())
+        self.timeEdit.setTime(self.timeEdit.time().addSecs(-(self.timer.remainingTime() // 1000)))
+
+    def transfer_line_to_text(self):
+        print("attempt to transfer")
+        data = self.lineEdit.text()
+        self.textEdit.append(data)
+        self.lineEdit.clear()
 
     def new_button(self):
         print('new buuton made')
@@ -59,7 +84,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         new_butt.show()
         self.scrollArea.ensureWidgetVisible(new_butt)
         self.scrollAreaWidgetContents.adjustSize()
-
 
     def resizeEvent(self, event):
         print('resized')
@@ -83,10 +107,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.setWindowTitle("Novoe okno")
             self.checkBox.setText("Yeaaaah")
 
-
     def update_time_from_dial(self, value):
+
+        delta = value - self.last_dial_value
+        print(delta, value)
+        self.last_dial_value = value
         current_time = self.timeEdit.time()
-        new_time = QTime(current_time.hour(), current_time.minute(), value)
+        new_time = current_time.addSecs(delta * 60)
         self.timeEdit.setTime(new_time)
 
     def mouseMoveEvent(self, e):
@@ -94,19 +121,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label2.setText("АА МЫШЬ ДЕРГАЕТСЯ")
         #self.tab_wid.hide()
         self.tab_wid.resize(250, 150)
-        self.slider.hide()
-
+        self.scrollArea.hide()
 
     def mouseDoubleClickEvent(self, event, /):
         self.paint_reason = "mouse atack"
         self.label2.setText("ААААА МЫШЬ ТЫЧЕТ")
         #self.grabMouse()
+
     def mouseReleaseEvent(self, e):
         self.paint_reason = "mouse released"
         self.label2.setText("Z...z.?")
         self.tab_wid.resize(381, 271)
-        self.slider.show()
+        self.scrollArea.show()
         #self.releaseMouse()
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
