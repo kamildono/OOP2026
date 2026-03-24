@@ -1,12 +1,16 @@
+import random
 import sys
+from random import choice
 from tkinter import Label
 
 from PySide6 import QtGui
 from PySide6.QtCore import QTime, QRect
 from PySide6.QtGui import QPainter
-from PySide6.QtWidgets import QApplication, QMainWindow, QLabel
+from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton
 from ui_window import Ui_MainWindow
 
+randomness = [i for i in range(-100, 100) if (i <-10 or i > 10)]
+print(randomness)
 
 class MainWindow(QMainWindow, Ui_MainWindow):
 
@@ -42,6 +46,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #self.paint = QtGui.QPaintEvent(paintRect)
 
         self.paint_reason = "boot"
+
+
+        self.pushButton.clicked.connect(self.new_button)
+
+
+    def new_button(self):
+        print('new buuton made')
+        new_butt = QPushButton("БОЛЬШЕ!", self.scrollAreaWidgetContents)
+        new_butt.move(self.sender().x() + random.choice(randomness), self.sender().y() + random.choice(randomness))
+        new_butt.clicked.connect(self.new_button)
+        new_butt.show()
+        self.scrollArea.ensureWidgetVisible(new_butt)
+        self.scrollAreaWidgetContents.adjustSize()
+
+
+    def resizeEvent(self, event):
+        print('resized')
+        self.paint_reason = 'resizing'
 
     def paintEvent(self, event):
 
