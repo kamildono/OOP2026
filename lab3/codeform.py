@@ -15,7 +15,6 @@ prs_event = 1
 class Container:
     __array = []
     __size = 0
-    __quick_slc = set()
     __active_ctr = False
 
     def __init__(self):
@@ -55,19 +54,26 @@ class Container:
         was_something_found = False
         for i, circ in enumerate(self.__array):
             print('we were pressed! trying to find')
-            if circ.checkPress(whereas):
-                self.__quick_slc.add(i)
-                was_something_found = True
-            if self.__active_ctr:
+            if not circ.checkPress(whereas):
                 continue
-            else:
+
+            was_something_found = True
+            if not self.__active_ctr: #if false still checks for ctrl
                 break
         return was_something_found
 
     def deletion(self):
-        for id in self.__quick_slc:
-            del self.__array[id]
-            self.__size -= 1
+        to_del = []
+        for circ in self.__array:
+            if circ.getState():
+                print('will delete: ', circ)
+                to_del.append(circ)
+                #self.__array.remove(circ)
+                self.__size -= 1
+        for x in to_del:
+            self.__array.remove(x)
+            del x
+
 
 class Circle:
     __x = 0
@@ -81,6 +87,9 @@ class Circle:
         self.__y = y
         self.__radius = radius
         self.__line_width = radius // 5 + 1
+
+    #def kill(self):
+    #    del self
 
     #def GetCoord(self):
     #    return self.__x, self.__y
@@ -98,11 +107,13 @@ class Circle:
 
         if  ((coords.x() - self.__x)**2 + (coords.y() - self.__y)**2) <= self.__radius**2:
             print('thats i am who was hurt!')
-            self.__state = True
+            self.__state = not self.__state
             return True
         else:
             return False
 
+    def getState(self) -> bool:
+        return self.__state
 
 class MyWindow(QMainWindow, Ui_MainWindow):
     __cont = Container()
