@@ -16,6 +16,7 @@ class Container:
     __array = []
     __size = 0
     __active_ctr = False
+    __select_all_when_multi_layer = False
 
     def __init__(self):
         print("Container: Im initialised!")
@@ -49,17 +50,24 @@ class Container:
             print('it was other key!')
             self.__active_ctr = False
             pass
+    def clearStates(self):
+        for item in self.__array:
+            item.disable()
 
     def pressed(self, whereas) -> bool:
+        if not self.__active_ctr:
+            self.clearStates()
         was_something_found = False
         for i, circ in enumerate(self.__array):
             print('we were pressed! trying to find')
             if not circ.checkPress(whereas):
                 continue
-
             was_something_found = True
-            if not self.__active_ctr: #if false still checks for ctrl
+
+            #if not self.__active_ctr:
+            if not self.__select_all_when_multi_layer:
                 break
+
         return was_something_found
 
     def deletion(self):
@@ -93,6 +101,12 @@ class Circle:
 
     #def GetCoord(self):
     #    return self.__x, self.__y
+
+    def disable(self):
+        self.__state = False
+
+    def enable(self):
+        self.__state = True
     def printCoord(self):
         print('coords: ', self.__x, self.__y)
 
@@ -119,20 +133,31 @@ class MyWindow(QMainWindow, Ui_MainWindow):
     __cont = Container()
     def __init__(self):
         super().__init__()
+        self.setupUi(self)
         timer = QTimer(self)
         timer.timeout.connect(self.update)
         timer.start(100)
+        self.label.setText('тут клавиша')
 
     def mousePressEvent(self, event, /):
         coords = event.position()
         if not self.__cont.pressed(coords):
             self.addCircle(coords)
 
+    def keyTranslate(self, value) -> str:
+        key_debug = 'other'
+        if value == del_key:
+            key_debug = 'del'
+        elif value == ctr_key:
+            key_debug = 'ctr'
+        return key_debug
 
     def keyReleaseEvent(self, event, /):
+        self.label.setText('rel ' + self.keyTranslate(event.key()))
         self.__cont.keyboardUsed(event.key(), rel_event)
 
     def keyPressEvent(self, event, /):
+        self.label.setText('prs ' + self.keyTranslate(event.key()))
         self.__cont.keyboardUsed(event.key(), prs_event)
 
     def addCircle(self, pos):
