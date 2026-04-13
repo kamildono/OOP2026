@@ -15,7 +15,6 @@ print(randomness)
 
 class MainWindow(QMainWindow, Ui_MainWindow):
 
-    # noinspection PyStatementEffect
     def __init__(self):
         super().__init__()
         self.setupUi(self)
