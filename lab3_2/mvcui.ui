@@ -56,10 +56,10 @@
      </rect>
     </property>
     <property name="minimum">
-     <number>-500</number>
+     <number>-10</number>
     </property>
     <property name="maximum">
-     <number>500</number>
+     <number>110</number>
     </property>
     <property name="orientation">
      <enum>Qt::Orientation::Vertical</enum>
@@ -75,10 +75,10 @@
      </rect>
     </property>
     <property name="minimum">
-     <number>-500</number>
+     <number>-10</number>
     </property>
     <property name="maximum">
-     <number>500</number>
+     <number>110</number>
     </property>
     <property name="orientation">
      <enum>Qt::Orientation::Vertical</enum>
@@ -110,10 +110,10 @@
      </rect>
     </property>
     <property name="minimum">
-     <number>-500</number>
+     <number>-10</number>
     </property>
     <property name="maximum">
-     <number>500</number>
+     <number>110</number>
     </property>
     <property name="orientation">
      <enum>Qt::Orientation::Vertical</enum>
