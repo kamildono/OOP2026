@@ -1,11 +1,6 @@
 import sys
 from random import randint
 
-from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QMainWindow, QApplication
-
-from mvcui import Ui_MainWindow
-
 path_to_txt = 'data.txt'
 limits = [0, 100]
 
@@ -29,8 +24,6 @@ class Model:
             self.__a = int(self.__a)
             self.__b = int(self.__b)
             self.__c = int(self.__c)
-
-
         except:
             print('Something went terribly wrong!')
             sys.exit()
@@ -40,7 +33,6 @@ class Model:
         print(self.observers)
 
     def writeFile(self):
-
         if not isinstance(self.__a, int):
             if isinstance(self.__a, str) and self.__a.isdecimal():
                 self.__a = int(self.__a)
@@ -71,8 +63,9 @@ class Model:
 
     def sendValue(self):
         print('***** SENDING TO UI! *****')
+        arr_to_send = [[x, x, x] for x in self.getAll()]
         for e in self.observers:
-            e.updateFromModel(self.getAll())
+            e.updateFromModel(arr_to_send)
 
     def recieveValues(self, object):
         print("def recieveValues(self, object):", *object)
@@ -164,63 +157,4 @@ class Model:
     def __del__(self):
         self.writeFile()
 
-class MyWindow(QMainWindow, Ui_MainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setupUi(self)
 
-        self.label.setPixmap(QPixmap('laba3_2.png'))
-
-        self.m = Model(self)
-        #self.m.observers.append(self)
-
-        self.spinBox_1.returnPressed.connect(self.sendToModel)
-        self.spinBox_2.returnPressed.connect(self.sendToModel)
-        self.spinBox_3.returnPressed.connect(self.sendToModel)
-
-        self.lineEdit_1.returnPressed.connect(self.sendToModel)
-        self.lineEdit_2.returnPressed.connect(self.sendToModel)
-        self.lineEdit_3.returnPressed.connect(self.sendToModel)
-
-        self.verticalSlider_1.sliderReleased.connect(self.sendToModel)
-        self.verticalSlider_2.sliderReleased.connect(self.sendToModel)
-        self.verticalSlider_3.sliderReleased.connect(self.sendToModel)
-
-    def sendToModel(self):
-        t1 = self.lineEdit_1.text()
-        s1 = self.spinBox_1.value()
-        v1 = self.verticalSlider_1.value()
-
-
-        t2 = self.lineEdit_2.text()
-        s2 = self.spinBox_2.value()
-        v2 = self.verticalSlider_2.value()
-
-        t3 = self.lineEdit_3.text()
-        s3 = self.spinBox_3.value()
-        v3 = self.verticalSlider_3.value()
-
-        values = [t1, s1, v1, t2, s2, v2, t3, s3, v3]
-        print("***** SENDING TO MODEL *****")
-        print("def sendToModel(self):", *values)
-        self.m.recieveValues(values)
-
-    def updateFromModel(self, object):
-        print(object)
-        self.lineEdit_1.setText(str(object[0]))
-        self.spinBox_1.setValue(int(object[0]))
-        self.verticalSlider_1.setValue(int(object[0]))
-
-        self.lineEdit_2.setText(str(object[1]))
-        self.spinBox_2.setValue(int(object[1]))
-        self.verticalSlider_2.setValue(int(object[1]))
-
-        self.lineEdit_3.setText(str(object[2]))
-        self.spinBox_3.setValue(int(object[2]))
-        self.verticalSlider_3.setValue(int(object[2]))
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    w = MyWindow()
-    w.show()
-    sys.exit(app.exec())
