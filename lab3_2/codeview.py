@@ -52,19 +52,26 @@ class MyWindow(QMainWindow, Ui_MainWindow):
 
         if not self.checkChanges(old_values, new_values):
             print('nothing changed, aborting package')
+            self.updateFromSelf()
             return
 
+        new_values = list(map(int, new_values))
         print("***** SENDING TO MODEL *****")
         print("def sendToModel(self):", *new_values)
         self.m.recieveValues(new_values)
 
     def updateFromModel(self, objectt):
+        print("** UPDATE BY MODL **")
         print(objectt)
         for i, e in enumerate(objectt):
             print('e:', e)
             self.__textes[i] = str(e[0])
             self.__spins[i] = int(e[1])
             self.__sliders[i] = int(e[2])
+        self.setValues()
+
+    def updateFromSelf(self):
+        print("** UPDATE BY SELF **")
         self.setValues()
 
     def setValues(self) -> None:
@@ -95,6 +102,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
 
     def checkChanges(self, were, now):
         for x, y in zip(were, now):
+            #print('x,y:', x, y)
             if x != y:
                 return True
         return False

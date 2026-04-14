@@ -136,12 +136,9 @@ class Model:
         print("def correctUnifed() array :", arr)
         users_value = self_what
         for x in arr:
-            if isinstance(x, str):
-                if not x.isdecimal():
-                    break
-            if int(x) == self_what:
+            if x == self_what:
                 continue
-            users_value = int(x)
+            users_value = x
         print("def correctUnifed() value :", users_value)
         return users_value
 
