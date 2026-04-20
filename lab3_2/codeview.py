@@ -11,6 +11,9 @@ class MyWindow(QMainWindow, Ui_MainWindow):
     __textes = ['' for i in range(__number_elems)]
     __spins = [0 for i in range(__number_elems)]
     __sliders = [0 for i in range(__number_elems)]
+    __a = 0
+    __b = 0
+    __c = 0
 
     def __init__(self):
         super().__init__()
@@ -21,13 +24,13 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.m = Model(self)
         # self.m.observers.append(self)
 
-        self.spinBox_1.returnPressed.connect(self.sendToModel)
-        self.spinBox_2.returnPressed.connect(self.sendToModel)
-        self.spinBox_3.returnPressed.connect(self.sendToModel)
+        self.spinBox_1.editingFinished.connect(self.sendToModel)
+        self.spinBox_2.editingFinished.connect(self.sendToModel)
+        self.spinBox_3.editingFinished.connect(self.sendToModel)
 
-        self.lineEdit_1.returnPressed.connect(self.sendToModel)
-        self.lineEdit_2.returnPressed.connect(self.sendToModel)
-        self.lineEdit_3.returnPressed.connect(self.sendToModel)
+        self.lineEdit_1.editingFinished.connect(self.sendToModel)
+        self.lineEdit_2.editingFinished.connect(self.sendToModel)
+        self.lineEdit_3.editingFinished.connect(self.sendToModel)
 
         self.verticalSlider_1.sliderReleased.connect(self.sendToModel)
         self.verticalSlider_2.sliderReleased.connect(self.sendToModel)
@@ -49,25 +52,43 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         t1, t2, t3 = self.correctStr(t1, t2, t3)
         new_values = [t1, s1, v1, t2, s2, v2, t3, s3, v3]
         old_values = self.getValues1D()
+        print("new_values, old_values", new_values, old_values)
+
+        temp_a = self.__a
+        temp_b = self.__b
+        temp_c = self.__c
+        for i, (x, y) in enumerate(zip(new_values, old_values)):
+            x = int(x)
+            y = int(y)
+
+            if x == y:
+                continue
+            if i < self.__number_elems:
+                temp_a = x
+            elif self.__number_elems <= i < self.__number_elems*2:
+                temp_b = x
+            elif i >= self.__number_elems*2:
+                temp_c = x
 
         if not self.checkChanges(old_values, new_values):
             print('nothing changed, aborting package')
             self.updateFromSelf()
             return
 
-        new_values = list(map(int, new_values))
+        send_arr = [temp_a, temp_b, temp_c]
         print("***** SENDING TO MODEL *****")
-        print("def sendToModel(self):", *new_values)
-        self.m.recieveValues(new_values)
+        print("def sendToModel(self):", *send_arr)
+        self.m.recieveValues(send_arr)
 
     def updateFromModel(self, objectt):
         print("** UPDATE BY MODL **")
         print(objectt)
+
         for i, e in enumerate(objectt):
             print('e:', e)
-            self.__textes[i] = str(e[0])
-            self.__spins[i] = int(e[1])
-            self.__sliders[i] = int(e[2])
+            self.__textes[i] = str(e)
+            self.__spins[i] = int(e)
+            self.__sliders[i] = int(e)
         self.setValues()
 
     def updateFromSelf(self):
@@ -78,14 +99,17 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         self.lineEdit_1.setText(self.__textes[0])
         self.spinBox_1.setValue(self.__spins[0])
         self.verticalSlider_1.setValue(self.__sliders[0])
+        self.__a = self.__spins[0]
 
         self.lineEdit_2.setText(self.__textes[1])
         self.spinBox_2.setValue(self.__spins[1])
         self.verticalSlider_2.setValue(self.__sliders[1])
+        self.__b = self.__spins[1]
 
         self.lineEdit_3.setText(self.__textes[2])
         self.spinBox_3.setValue(self.__spins[2])
         self.verticalSlider_3.setValue(self.__sliders[2])
+        self.__c = self.__spins[2]
 
     def getValues1D(self):
         arr = []
