@@ -1,10 +1,11 @@
 import sys
 
 from PySide6.QtCore import QPoint, QTimer, QRect
-from PySide6.QtGui import QPainter, QColor, QPen, Qt, QAction, QActionGroup
+from PySide6.QtGui import QPainter, QColor, QPen, Qt, QAction, QActionGroup, QKeySequence
 from PySide6.QtWidgets import QMainWindow, QApplication
 
 from uiform import Ui_MainWindow
+from codeshapes import *
 
 del_key = 16777223
 ctr_key = 16777249
@@ -20,12 +21,12 @@ slovar = {
 }
 
 class Container:
-    __array = []
-    __size = 0
-    __active_ctr = False
-    __select_all_when_multi_layer = False
 
     def __init__(self):
+        self.__array = list()
+        self.__size = 0
+        self.__active_ctr = False
+        self.__select_all_when_multi_layer = False
         print("Container: Im initialised!")
 
     def addItem(self, item):
@@ -33,49 +34,60 @@ class Container:
         self.__array.append(item)
         self.__size += 1
 
+    def setCtrl(self, state):
+        self.__active_ctr = state
+
     def getAll(self):
         return self.__array
 
     def printAll(self):
-        for circ in self.__array:
-            circ.printCoord()
+        for item in self.__array:
+            item.printCoord()
 
     def drawAll(self, painter):
-        for circ in self.__array:
+        for item in self.__array:
             #print('working at', circ)
-            circ.paint(painter)
+            item.paint(painter)
 
-    def keyboardUsed(self, key, type):
-        print('trying to resolve key')
-        if key == del_key and type == rel_event:
-            print('it was del key!')
-            self.deletion()
-        elif key == ctr_key and type == prs_event:
-            print('it was ctr key!')
-            self.__active_ctr = True
-        else:
-            print('it was other key!')
-            self.__active_ctr = False
-            pass
     def clearStates(self):
         for item in self.__array:
             item.disable()
 
-    def pressed(self, whereas) -> bool:
+    def moveItems(self, dx, dy, bounds):
+        for item in self.__array:
+            if item.getState():
+                item.move(dx, dy, bounds)
+
+    def resizeItems(self, dw, dh, bounds):
+        for item in self.__array:
+            if item.getState():
+                item.resize(dw, dh, bounds)
+
+    def pressed(self, coord) -> bool:
+        was_something_found = list()
+
+        for i, item in enumerate(reversed(self.__array)):
+            print('we were pressed! trying to find')
+            if item.checkPress(coord):
+                was_something_found.append(item)
+                if self.__select_all_when_multi_layer: continue
+                else: break
+
+        if not len(was_something_found):
+            return False
+
         if not self.__active_ctr:
             self.clearStates()
-        was_something_found = False
-        for i, circ in enumerate(self.__array):
-            print('we were pressed! trying to find')
-            if not circ.checkPress(whereas):
-                continue
-            was_something_found = True
+            for e in was_something_found:
+                e.enable()
+        else:
+            for e in was_something_found:
+                if e.getState():
+                    e.disable()
+                else:
+                    e.enable()
 
-            #if not self.__active_ctr:
-            if not self.__select_all_when_multi_layer:
-                break
-
-        return was_something_found
+        return True
 
     def deletion(self):
         to_del = []
@@ -89,111 +101,25 @@ class Container:
             self.__array.remove(x)
             del x
 
-class PyShape:
-    _cx = 0
-    _cy = 0
-    _width = 0
-    _height = 0
-    _colour = "green"
-    _line_width = 1
-    _state = False
+    def hasSelected(self):
+        for item in self.__array:
+            if item.getState():
+                return True
+        return False
 
-    def __init__(self, x, y, w, h, colour="green"):
-        print("init Shape")
-
-        self._cx = x
-        self._cy = y
-        self._width = w
-        self._height = h
-        self._colour = QColor(colour)
-        self._line_width = min(self._width, self._height) // 5 + 1
-
-    def disable(self):
-        self._state = False
-
-    def enable(self):
-        self._state = True
-
-    def getState(self) -> bool:
-        return self._state
-
-    def printCoord(self):
-        print('coords: ', self._cx, self._cy)
-
-    def paint(self, painter):
-        if self._state:
-            painter.setPen(QPen(QColor("cyan"), self._line_width, Qt.SolidLine))
-        else:
-            painter.setPen(QPen(QColor(self._colour), 0))
-
-class Circle(PyShape):
-
-    def __init__(self, x, y, r, colour="green"):
-        print("init Circle")
-        super().__init__(x, y, r, r, colour)
-
-    def paint(self, painter):
-        super().paint(painter)
-        painter.drawEllipse(QPoint(self._cx, self._cy), self._width, self._height)
-
-    def checkPress(self, coords) -> bool:
-        if  ((coords.x() - self._cx)**2 + (coords.y() - self._cy)**2) <= self._width**2:
-            print('thats i Circle who was hurt!')
-            self._state = not self._state
-            return True
-        else:
-            return False
-
-class Rect(PyShape):
-    _top_left = 0
-    _bot_right = 0
-
-    def __init__(self, x, y, width, height, colour="green"):
-        print("init Rect")
-        super().__init__(x,y,width, height, colour)
-        self._top_left = QPoint(self._cx - self._width, self._cy - self._height)
-        self._bot_right = QPoint(self._cx + self._width, self._cy + self._height)
-
-    def paint(self, painter):
-        super().paint(painter)
-        p1 = self._top_left
-        p2 = self._bot_right
-        painter.drawRect(QRect(p1, p2))
-
-    def checkPress(self, coords) -> bool:
-        if ((self._cx - self._width <= coords.x() <= self._cx + self._width) and \
-            (self._cy - self._height <= coords.y() <= self._cy + self._height)):
-            print('thats i Rect who was hurt!')
-            self._state = not self._state
-            return True
-        else:
-            return False
-
-class Ellipse(PyShape):
-    def __init__(self, x,y,a,b,colour="green"):
-        print("init Ellipse")
-        super().__init__(x,y,a,b,colour)
-
-    def paint(self, painter):
-        super().paint(painter)
-        painter.drawEllipse(QPoint(self._cx, self._cy), self._width, self._height)
-
-    def checkPress(self, coords) -> bool:
-        if (((coords.x() - self._cx)/self._width)**2 + ((coords.y() - self._cy)/self._height)**2) <= 1:
-            print('thats i Ellipse who was hurt!')
-            self._state = not self._state
-            return True
-        else:
-            return False
+    def fixWindowResize(self, bounds):
+        for item in self.__array:
+            item.fitWindow(bounds)
 
 class MyWindow(QMainWindow, Ui_MainWindow):
-    __cont = Container()
-    __current_type = 0
 
     def __init__(self):
         super().__init__()
-
         self.setupUi(self)
+
+        self.__cont = Container()
+        self.__current_type = 0
+        self.__active_shift = False
 
         self.label.setText('тут клавиша')
         self.createMenu()
@@ -201,7 +127,7 @@ class MyWindow(QMainWindow, Ui_MainWindow):
 
         timer = QTimer(self)
         timer.timeout.connect(self.update)
-        timer.start(100)
+        timer.start(16)
 
     def createMenu(self):
         self.action_circ = QAction("Круг", self)
@@ -232,45 +158,86 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         print("def setType:", sender.text())
         self.__current_type = slovar[sender.text()]
 
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+
+        self.__cont.fixWindowResize(self.rect())
+        self.update()
+
     def mousePressEvent(self, event, /):
         coords = event.position()
 
-        if not self.__cont.pressed(coords):
-            self.addShape(coords)
+        if self.__cont.pressed(coords):
+            return
 
+        if self.__cont.hasSelected():
+            self.__cont.clearStates()
+            return
 
-    def keyTranslate(self, value) -> str:
-        key_debug = 'other'
-        if value == del_key:
-            key_debug = 'del'
-        elif value == ctr_key:
-            key_debug = 'ctr'
-        return key_debug
+        self.addShape(coords)
 
     def keyReleaseEvent(self, event, /):
-        self.label.setText('rel ' + self.keyTranslate(event.key()))
-        self.__cont.keyboardUsed(event.key(), rel_event)
+        self.label.setText('rel ' + QKeySequence(event.key()).toString())
+        if event.key() == Qt.Key_Control:
+            self.__cont.setCtrl(False)
+        if event.key() == Qt.Key_Shift:
+            self.__active_shift = False
 
     def keyPressEvent(self, event, /):
-        self.label.setText('prs ' + self.keyTranslate(event.key()))
-        self.__cont.keyboardUsed(event.key(), prs_event)
+        self.label.setText('prs ' + QKeySequence(event.key()).toString())
+
+        if event.key() == Qt.Key_Control:
+            self.__cont.setCtrl(True)
+
+        if event.key() == Qt.Key_Delete:
+            self.__cont.deletion()
+
+        if event.key() == Qt.Key_Shift:
+            self.__active_shift = True
+
+        step = 5
+        if not self.__active_shift:
+            if event.key() == Qt.Key_Left:
+                self.__cont.moveItems(-step, 0, self.rect())
+            if event.key() == Qt.Key_Right:
+                self.__cont.moveItems(step, 0, self.rect())
+            if event.key() == Qt.Key_Up:
+                self.__cont.moveItems(0, -step, self.rect())
+            if event.key() == Qt.Key_Down:
+                self.__cont.moveItems(0, step, self.rect())
+        else:
+            if event.key() == Qt.Key_Left:
+                self.__cont.resizeItems(-step, 0, self.rect())
+            if event.key() == Qt.Key_Right:
+                self.__cont.resizeItems(step, 0, self.rect())
+            if event.key() == Qt.Key_Up:
+                self.__cont.resizeItems(0, -step, self.rect())
+            if event.key() == Qt.Key_Down:
+                self.__cont.resizeItems(0, step, self.rect())
 
     def addShape(self, pos):
         print(pos.x(), pos.y())
         print("out print(self.__current_type)", self.__current_type)
         c = None
+        type = None
         if self.__current_type == 0:
-            c = Circle(pos.x(), pos.y(), 30)
-            print("print(self.__current_type)", self.__current_type)
-        elif self.__current_type == 2:
-            c = Square(pos.x(), pos.y(), 30)
+            typee = Circle
         elif self.__current_type == 1:
-            c = Ellipse(pos.x(), pos.y(), 30, 30)
+            typee = Ellipse
+        elif self.__current_type == 2:
+            typee = Square
         elif self.__current_type == 3:
-            print("print(self.__current_type)", self.__current_type)
-            c = Rect(pos.x(), pos.y(), 30, 30)
+            typee = Rect
 
-        self.__cont.addItem(c)
+        if typee is None:
+            return
+
+        obj = typee(pos.x(), pos.y())
+        if obj.canBePlaced(self.rect()):
+            self.__cont.addItem(obj)
+        else:
+            print("Фигура выходит за границы окна")
+
         self.__cont.printAll()
 
     def paintEvent(self, event, /):
