@@ -2,16 +2,11 @@ import sys
 
 from PySide6.QtCore import QPoint, QTimer, QRect
 from PySide6.QtGui import QPainter, QColor, QPen, Qt, QAction, QActionGroup, QKeySequence
-from PySide6.QtWidgets import QMainWindow, QApplication
+from PySide6.QtWidgets import QMainWindow, QApplication, QColorDialog
 
 from uiform import Ui_MainWindow
 from codeshapes import *
 
-del_key = 16777223
-ctr_key = 16777249
-
-rel_event = 2
-prs_event = 1
 
 slovar = {
     "Круг" : 0,
@@ -111,6 +106,12 @@ class Container:
         for item in self.__array:
             item.fitWindow(bounds)
 
+    def colorSelected(self, color):
+        for item in self.__array:
+            if item.getState():
+                item.setColor(color)
+
+
 class MyWindow(QMainWindow, Ui_MainWindow):
 
     def __init__(self):
@@ -195,6 +196,11 @@ class MyWindow(QMainWindow, Ui_MainWindow):
         if event.key() == Qt.Key_Shift:
             self.__active_shift = True
 
+        if event.key() == Qt.Key_C:
+            color = QColorDialog.getColor()
+            if color.isValid():
+                self.__cont.colorSelected(color)
+            #self.update()
         step = 5
         if not self.__active_shift:
             if event.key() == Qt.Key_Left:
@@ -206,14 +212,10 @@ class MyWindow(QMainWindow, Ui_MainWindow):
             if event.key() == Qt.Key_Down:
                 self.__cont.moveItems(0, step, self.rect())
         else:
-            if event.key() == Qt.Key_Left:
-                self.__cont.resizeItems(-step, 0, self.rect())
-            if event.key() == Qt.Key_Right:
-                self.__cont.resizeItems(step, 0, self.rect())
             if event.key() == Qt.Key_Up:
-                self.__cont.resizeItems(0, -step, self.rect())
+                self.__cont.resizeItems(step, step, self.rect())
             if event.key() == Qt.Key_Down:
-                self.__cont.resizeItems(0, step, self.rect())
+                self.__cont.resizeItems(-step, -step, self.rect())
 
     def addShape(self, pos):
         print(pos.x(), pos.y())

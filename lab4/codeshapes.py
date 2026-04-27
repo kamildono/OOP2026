@@ -10,7 +10,7 @@ class PyShape:
         self._cy = y
         self._width = w
         self._height = h
-        self._colour = QColor(colour)
+        self._color = QColor(colour)
         self._line_width = min(self._width, self._height) // 5 + 1
         self._state = False
 
@@ -43,11 +43,12 @@ class PyShape:
         temp_w = self._width + dw
         temp_h = self._height + dh
 
-        if self.checkBounds(self._cx, self._cy, temp_w, temp_h, bounds):
-            self._width = temp_w
-            self._height = temp_h
-            print("successful resize!")
-            return
+        if temp_w > 0 and temp_h > 0:
+            if self.checkBounds(self._cx, self._cy, temp_w, temp_h, bounds):
+                self._width = temp_w
+                self._height = temp_h
+                print("successful resize!")
+                return
 
         print("could not resize")
 
@@ -64,10 +65,11 @@ class PyShape:
         print('coords: ', self._cx, self._cy)
 
     def paint(self, painter):
+        painter.setBrush(self._color)
         if self._state:
             painter.setPen(QPen(QColor("cyan"), self._line_width, Qt.SolidLine))
         else:
-            painter.setPen(QPen(QColor(self._colour), 0))
+            painter.setPen(QPen(QColor(self._color), 0))
 
     def fitWindow(self, bounds):
         if self._cx + self._width > bounds.width():
@@ -81,6 +83,9 @@ class PyShape:
 
         if self._cy - self._height < 0:
             self._cy = self._height
+
+    def setColor(self, color):
+        self._color = color
 
 class Circle(PyShape):
 
