@@ -7,156 +7,104 @@ from mvcui import Ui_MainWindow
 from codemvc import Model
 
 class MyWindow(QMainWindow, Ui_MainWindow):
-    __number_elems = 3
-    __textes = ['' for i in range(__number_elems)]
-    __spins = [0 for i in range(__number_elems)]
-    __sliders = [0 for i in range(__number_elems)]
-    __a = 0
-    __b = 0
-    __c = 0
 
     def __init__(self):
+        self.__a = 0
+        self.__b = 0
+        self.__c = 0
+
         super().__init__()
         self.setupUi(self)
 
         self.label.setPixmap(QPixmap('laba3_2.png'))
 
-        self.m = Model(self)
-        # self.m.observers.append(self)
+        self.model = Model()
+        self.model.addObersver(self)
+        self.model.notify()
 
-        self.spinBox_1.editingFinished.connect(self.sendToModel)
-        self.spinBox_2.editingFinished.connect(self.sendToModel)
-        self.spinBox_3.editingFinished.connect(self.sendToModel)
+        self.spinBox_1.editingFinished.connect(lambda: self.onChangedA(self.spinBox_1.value()))
+        self.spinBox_2.editingFinished.connect(lambda: self.onChangedB(self.spinBox_2.value()))
+        self.spinBox_3.editingFinished.connect(lambda: self.onChangedC(self.spinBox_3.value()))
 
-        self.lineEdit_1.editingFinished.connect(self.sendToModel)
-        self.lineEdit_2.editingFinished.connect(self.sendToModel)
-        self.lineEdit_3.editingFinished.connect(self.sendToModel)
+        self.lineEdit_1.editingFinished.connect(lambda: self.onChangedA(self.lineEdit_1.text()))
+        self.lineEdit_2.editingFinished.connect(lambda: self.onChangedB(self.lineEdit_2.text()))
+        self.lineEdit_3.editingFinished.connect(lambda: self.onChangedC(self.lineEdit_3.text()))
 
-        self.verticalSlider_1.sliderReleased.connect(self.sendToModel)
-        self.verticalSlider_2.sliderReleased.connect(self.sendToModel)
-        self.verticalSlider_3.sliderReleased.connect(self.sendToModel)
+        self.verticalSlider_1.sliderReleased.connect(lambda: self.onChangedA(self.verticalSlider_1.value()))
+        self.verticalSlider_2.sliderReleased.connect(lambda: self.onChangedB(self.verticalSlider_2.value()))
+        self.verticalSlider_3.sliderReleased.connect(lambda: self.onChangedC(self.verticalSlider_3.value()))
 
-    def sendToModel(self):
-        t1 = self.lineEdit_1.text()
-        s1 = self.spinBox_1.value()
-        v1 = self.verticalSlider_1.value()
+    def onChangedA(self, val):
+        print("def changedA(self, val)", val)
 
-        t2 = self.lineEdit_2.text()
-        s2 = self.spinBox_2.value()
-        v2 = self.verticalSlider_2.value()
-
-        t3 = self.lineEdit_3.text()
-        s3 = self.spinBox_3.value()
-        v3 = self.verticalSlider_3.value()
-
-        t1, t2, t3 = self.correctStr(t1, t2, t3)
-        new_values = [t1, s1, v1, t2, s2, v2, t3, s3, v3]
-        old_values = self.getValues1D()
-        print("new_values, old_values", new_values, old_values)
-
-        temp_a = self.__a
-        temp_b = self.__b
-        temp_c = self.__c
-        for i, (x, y) in enumerate(zip(new_values, old_values)):
-            x = int(x)
-            y = int(y)
-
-            if x == y:
-                continue
-            if i < self.__number_elems:
-                temp_a = x
-            elif self.__number_elems <= i < self.__number_elems*2:
-                temp_b = x
-            elif i >= self.__number_elems*2:
-                temp_c = x
-
-        if not self.checkChanges(old_values, new_values):
-            print('nothing changed, aborting package')
-            self.updateFromSelf()
+        try:
+            val = int(val)
+        except:
+            self.setValues()
             return
 
-        send_arr = [temp_a, temp_b, temp_c]
-        print("***** SENDING TO MODEL *****")
-        print("def sendToModel(self):", *send_arr)
-        self.m.recieveValues(send_arr)
+        if val == self.__a:
+            print('nothing changed, aborting package')
+            self.setValues()
+            return
 
-    def updateFromModel(self, objectt):
-        print("** UPDATE BY MODL **")
-        print(objectt)
+        self.model.setA(val)
 
-        for i, e in enumerate(objectt):
-            print('e:', e)
-            self.__textes[i] = str(e)
-            self.__spins[i] = int(e)
-            self.__sliders[i] = int(e)
-        self.setValues()
+    def onChangedB(self, val):
+        print("def changedB(self, val)", val)
 
-    def updateFromSelf(self):
-        print("** UPDATE BY SELF **")
-        self.setValues()
+        try:
+            val = int(val)
+        except:
+            self.setValues()
+            return
 
-    def setValues(self) -> None:
-        self.lineEdit_1.setText(self.__textes[0])
-        self.spinBox_1.setValue(self.__spins[0])
-        self.verticalSlider_1.setValue(self.__sliders[0])
-        self.__a = self.__spins[0]
+        if val == self.__b:
+            print('nothing changed, aborting package')
+            self.setValues()
+            return
 
-        self.lineEdit_2.setText(self.__textes[1])
-        self.spinBox_2.setValue(self.__spins[1])
-        self.verticalSlider_2.setValue(self.__sliders[1])
-        self.__b = self.__spins[1]
+        self.model.setB(val)
 
-        self.lineEdit_3.setText(self.__textes[2])
-        self.spinBox_3.setValue(self.__spins[2])
-        self.verticalSlider_3.setValue(self.__sliders[2])
-        self.__c = self.__spins[2]
+    def onChangedC(self, val):
+        print("def changedC(self, val)", val)
 
-    def getValues1D(self):
-        arr = []
-        for i in range(self.__number_elems):
-            arr.append(self.__textes[i])
-            arr.append(self.__spins[i])
-            arr.append(self.__sliders[i])
+        try:
+            val = int(val)
+        except:
+            self.setValues()
+            return
 
-        return arr
+        if val == self.__c:
+            print('nothing changed, aborting package')
+            self.setValues()
+            return
 
-    def getValues2D(self):
-        arr = [self.__textes, self.__spins, self.__sliders]
-        return arr
+        self.model.setC(val)
 
-    def checkChanges(self, were, now):
-        for x, y in zip(were, now):
-            #print('x,y:', x, y)
-            if x != y:
-                return True
-        return False
+    def setValues(self, a=None, b=None, c=None):
+        if a is not None:
+            self.__a = a
+        if b is not None:
+            self.__b = b
+        if c is not None:
+            self.__c = c
 
-    def correctStr(self, *args):
-        buf = []
-        arr = []
-        reserve = " ".join(map(str, [i**2 for i in range(4, 4+self.__number_elems)]))
-        reserve = list(map(int, reserve.split()))
+        self.lineEdit_1.setText(str(self.__a))
+        self.spinBox_1.setValue(int(self.__a))
+        self.verticalSlider_1.setValue(int(self.__a))
 
-        if args is not None:
-            arr = args
-        else:
-            arr = self.__textes
-        for i, e in enumerate(arr):
-            print(e)
-            if e.isdecimal():
-                buf.append(e)
-                continue
+        self.lineEdit_2.setText(str(self.__b))
+        self.spinBox_2.setValue(int(self.__b))
+        self.verticalSlider_2.setValue(int(self.__b))
 
-            to_buf = self.__textes[i]
-            if not to_buf.isdecimal():
-                to_buf = reserve[i]
-
-            buf.append(to_buf)
-        return buf
-
+        self.lineEdit_3.setText(str(self.__c))
+        self.spinBox_3.setValue(int(self.__c))
+        self.verticalSlider_3.setValue(int(self.__c))
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setStyle("windowsvista")
     w = MyWindow()
     w.show()
     sys.exit(app.exec())
